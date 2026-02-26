@@ -287,8 +287,9 @@ def admin_delete(gp_id):
     return redirect(url_for('admin_dashboard'))
 
 
+init_db()
+
 if __name__ == '__main__':
-    init_db()
     print('\n  GP Finder running at http://127.0.0.1:5000')
     print('  Admin panel:        http://127.0.0.1:5000/admin\n')
     app.run(debug=False, port=5000)
