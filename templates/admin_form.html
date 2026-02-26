@@ -9,6 +9,7 @@
   </div>
 
   <form method="post" class="gp-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="form-grid">
       <label class="span-2">Practice Name <span class="req">*</span>
         <input type="text" name="practice_name" required

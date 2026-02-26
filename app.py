@@ -1,14 +1,63 @@
 import os
+import secrets
 import sqlite3
 from functools import wraps
+
+from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import generate_password_hash, check_password_hash
 
+load_dotenv()
+
 app = Flask(__name__)
-app.secret_key = 'gp-finder-secret-key-change-me'
-app.config['TEMPLATES_AUTO_RELOAD'] = True
+
+# ── Security configuration ─────────────────────────────────────────────────────
+
+_secret = os.environ.get('SECRET_KEY')
+if not _secret:
+    _secret = secrets.token_hex(32)
+    print('WARNING: SECRET_KEY not set in .env — using a random key. '
+          'Sessions will reset on every restart.')
+
+app.secret_key = _secret
+
+_is_production = os.environ.get('FORCE_HTTPS', '').lower() in ('1', 'true', 'yes')
+
+app.config.update(
+    TEMPLATES_AUTO_RELOAD=True,
+    SESSION_COOKIE_HTTPONLY=True,       # JS cannot read session cookie
+    SESSION_COOKIE_SAMESITE='Lax',      # CSRF mitigation for cross-site requests
+    SESSION_COOKIE_SECURE=_is_production,  # HTTPS-only cookies in production
+    PERMANENT_SESSION_LIFETIME=3600,    # 1-hour session timeout
+    WTF_CSRF_TIME_LIMIT=3600,
+)
+
+csrf = CSRFProtect(app)
+
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=[],
+    storage_uri='memory://',
+)
+
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gp.db')
 
+
+# ── HTTPS redirect ─────────────────────────────────────────────────────────────
+
+@app.before_request
+def enforce_https():
+    if _is_production:
+        proto = request.headers.get('X-Forwarded-Proto', 'http')
+        if proto != 'https':
+            return redirect(request.url.replace('http://', 'https://'), 301)
+
+
+# ── Database ───────────────────────────────────────────────────────────────────
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
@@ -41,14 +90,32 @@ def init_db():
             password_hash TEXT NOT NULL
         );
     ''')
-    if not conn.execute('SELECT id FROM admins LIMIT 1').fetchone():
+
+    admin_password = os.environ.get('ADMIN_PASSWORD', 'admin123')
+    existing = conn.execute('SELECT id FROM admins LIMIT 1').fetchone()
+
+    if not existing:
         conn.execute(
             'INSERT INTO admins (username, password_hash) VALUES (?, ?)',
-            ('admin', generate_password_hash('admin123'))
+            ('admin', generate_password_hash(admin_password))
         )
-    conn.commit()
+        conn.commit()
+    elif os.environ.get('ADMIN_PASSWORD'):
+        # Sync password if explicitly provided via env var
+        conn.execute(
+            'UPDATE admins SET password_hash = ? WHERE username = ?',
+            (generate_password_hash(admin_password), 'admin')
+        )
+        conn.commit()
+
+    if admin_password == 'admin123':
+        print('WARNING: Using default admin password "admin123". '
+              'Set ADMIN_PASSWORD in your .env file.')
+
     conn.close()
 
+
+# ── Auth helper ────────────────────────────────────────────────────────────────
 
 def login_required(f):
     @wraps(f)
@@ -100,6 +167,7 @@ def gp_detail(gp_id):
 # ── Admin routes ───────────────────────────────────────────────────────────────
 
 @app.route('/admin/login', methods=['GET', 'POST'])
+@limiter.limit('10 per minute')
 def admin_login():
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
@@ -108,7 +176,9 @@ def admin_login():
         row = conn.execute('SELECT * FROM admins WHERE username = ?', (username,)).fetchone()
         conn.close()
         if row and check_password_hash(row['password_hash'], password):
+            session.clear()
             session['admin_id'] = row['id']
+            session.permanent = True
             return redirect(url_for('admin_dashboard'))
         flash('Invalid username or password.')
     return render_template('admin_login.html')
@@ -116,7 +186,7 @@ def admin_login():
 
 @app.route('/admin/logout')
 def admin_logout():
-    session.pop('admin_id', None)
+    session.clear()
     return redirect(url_for('index'))
 
 
@@ -220,6 +290,5 @@ def admin_delete(gp_id):
 if __name__ == '__main__':
     init_db()
     print('\n  GP Finder running at http://127.0.0.1:5000')
-    print('  Admin panel:        http://127.0.0.1:5000/admin')
-    print('  Default login:      admin / admin123\n')
+    print('  Admin panel:        http://127.0.0.1:5000/admin\n')
     app.run(debug=False, port=5000)

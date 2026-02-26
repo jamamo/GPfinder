@@ -43,6 +43,7 @@
           <a href="{{ url_for('admin_edit', gp_id=gp['id']) }}" class="link-edit">Edit</a>
           <form action="{{ url_for('admin_delete', gp_id=gp['id']) }}" method="post" style="display:inline"
                 onsubmit="return confirm('Remove {{ gp['practice_name']|e }}?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="link-delete">Delete</button>
           </form>
         </td>
