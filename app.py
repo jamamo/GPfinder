@@ -287,7 +287,23 @@ def admin_delete(gp_id):
     return redirect(url_for('admin_dashboard'))
 
 
+def seed_db():
+    """Populate gps table from seed.sql if the table is empty."""
+    seed_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'seed.sql')
+    if not os.path.exists(seed_file):
+        return
+    conn = get_db()
+    count = conn.execute('SELECT COUNT(*) FROM gps').fetchone()[0]
+    if count == 0:
+        with open(seed_file, encoding='utf-8') as f:
+            conn.executescript(f.read())
+        conn.commit()
+        print(f'Seeded GP database from seed.sql')
+    conn.close()
+
+
 init_db()
+seed_db()
 
 if __name__ == '__main__':
     print('\n  GP Finder running at http://127.0.0.1:5000')
