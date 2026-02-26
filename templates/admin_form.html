@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} GP Practice{% endblock %}
+
+{% block content %}
+<div class="form-page">
+  <div class="form-header">
+    <h2>{{ action }} GP Practice</h2>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn-ghost">&larr; Cancel</a>
+  </div>
+
+  <form method="post" class="gp-form">
+    <div class="form-grid">
+      <label class="span-2">Practice Name <span class="req">*</span>
+        <input type="text" name="practice_name" required
+               value="{{ gp['practice_name'] if gp else '' }}">
+      </label>
+
+      <label>Practice Code
+        <input type="text" name="practice_code"
+               value="{{ gp['practice_code'] if gp else '' }}">
+      </label>
+
+      <label>Partnership Name
+        <input type="text" name="partnership_name"
+               value="{{ gp['partnership_name'] if gp else '' }}">
+      </label>
+
+      <label>Region
+        <select name="region">
+          <option value="">— select —</option>
+          {% for r in ['Manchester', 'Preston & Chorley', 'Stockport', 'Other'] %}
+            <option value="{{ r }}" {% if gp and gp['region'] == r %}selected{% endif %}>{{ r }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label>Neighbourhood
+        <input type="text" name="neighbourhood"
+               value="{{ gp['neighbourhood'] if gp else '' }}">
+      </label>
+
+      <label class="span-2">Area / CCG
+        <input type="text" name="area"
+               value="{{ gp['area'] if gp else '' }}">
+      </label>
+
+      <label class="span-2">Address Line 1
+        <input type="text" name="address_line1"
+               value="{{ gp['address_line1'] if gp else '' }}">
+      </label>
+
+      <label>Address Line 2
+        <input type="text" name="address_line2"
+               value="{{ gp['address_line2'] if gp else '' }}">
+      </label>
+
+      <label>Address Line 3
+        <input type="text" name="address_line3"
+               value="{{ gp['address_line3'] if gp else '' }}">
+      </label>
+
+      <label>Postcode
+        <input type="text" name="postcode"
+               value="{{ gp['postcode'] if gp else '' }}">
+      </label>
+
+      <label>Telephone
+        <input type="text" name="telephone"
+               value="{{ gp['telephone'] if gp else '' }}">
+      </label>
+
+      <label class="span-2">Email
+        <input type="email" name="email"
+               value="{{ gp['email'] if gp else '' }}">
+      </label>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-primary">{{ action }} Practice</button>
+      <a href="{{ url_for('admin_dashboard') }}" class="btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

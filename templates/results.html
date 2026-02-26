@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Results for "{{ query }}"{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <form action="{{ url_for('search') }}" method="get" class="search-form inline">
+    <div class="search-row">
+      <input type="text" name="q" value="{{ query }}" autocomplete="off" class="search-input">
+      <button type="submit" class="btn-primary">Search</button>
+    </div>
+  </form>
+</div>
+
+<div class="results-meta">
+  {% if results %}
+    <span>{{ results|length }} result{% if results|length != 1 %}s{% endif %} for <strong>"{{ query }}"</strong></span>
+  {% else %}
+    <span>No results for <strong>"{{ query }}"</strong></span>
+  {% endif %}
+</div>
+
+{% if results %}
+  <div class="card-grid">
+    {% for gp in results %}
+    <div class="card">
+      <div class="card-header">
+        <a href="{{ url_for('gp_detail', gp_id=gp['id']) }}" class="practice-name">{{ gp['practice_name'] }}</a>
+        {% if gp['practice_code'] %}
+          <span class="badge">{{ gp['practice_code'] }}</span>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        {% if gp['address_line1'] or gp['postcode'] %}
+          <p class="card-addr">
+            {% if gp['address_line1'] %}{{ gp['address_line1'] }}{% endif %}
+            {% if gp['address_line2'] %}, {{ gp['address_line2'] }}{% endif %}
+            {% if gp['postcode'] %}&nbsp;&bull;&nbsp;{{ gp['postcode'] }}{% endif %}
+          </p>
+        {% endif %}
+        {% if gp['telephone'] %}
+          <p class="card-tel">{{ gp['telephone'] }}</p>
+        {% endif %}
+        {% if gp['email'] %}
+          <p class="card-email">
+            <a href="mailto:{{ gp['email'] }}">{{ gp['email'] }}</a>
+            <button class="copy-btn" title="Copy email"
+                    onclick="copyEmail(this, '{{ gp['email'] }}')">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+            </button>
+          </p>
+        {% endif %}
+        <p class="card-region">{{ gp['region'] or '' }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-state">
+    <p>Try a different name, postcode, or practice code.</p>
+    <a href="{{ url_for('index') }}" class="btn-secondary">Back to search</a>
+  </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}GP Finder{% endblock %}
+
+{% block content %}
+<div class="hero">
+  <h1>Find a GP Practice</h1>
+  <p class="subtitle">Search by practice name, postcode, or location</p>
+  <form action="{{ url_for('search') }}" method="get" class="search-form">
+    <div class="search-row">
+      <input
+        type="text"
+        name="q"
+        autofocus
+        autocomplete="off"
+        placeholder="e.g. Ailsa Craig, M13 0YL, P84009&hellip;"
+        class="search-input"
+      >
+      <button type="submit" class="btn-primary">Search</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

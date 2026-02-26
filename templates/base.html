@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}GP Finder{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <a href="{{ url_for('index') }}" class="brand">GP Finder</a>
+      <nav>
+        <a href="{{ url_for('index') }}">Search</a>
+        {% if session.get('admin_id') %}
+          <a href="{{ url_for('admin_dashboard') }}">Admin</a>
+          <a href="{{ url_for('admin_logout') }}">Log out</a>
+        {% else %}
+          <a href="{{ url_for('admin_login') }}">Admin</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for msg in messages %}
+          <div class="flash">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <p>GP Finder &mdash; Internal use only</p>
+  </footer>
+  <script>
+  function copyEmail(btn, email) {
+    navigator.clipboard.writeText(email).then(function() {
+      btn.classList.add('copied');
+      btn.title = 'Copied!';
+      setTimeout(function() {
+        btn.classList.remove('copied');
+        btn.title = 'Copy email';
+      }, 2000);
+    });
+  }
+  </script>
+</body>
+</html>

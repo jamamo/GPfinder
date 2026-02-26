@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}{{ gp['practice_name'] }}{% endblock %}
+
+{% block content %}
+<div class="detail-back">
+  <a href="javascript:history.back()" class="btn-secondary">&larr; Back</a>
+</div>
+
+<div class="detail-card">
+  <div class="detail-title-row">
+    <h2>{{ gp['practice_name'] }}</h2>
+    {% if gp['practice_code'] %}
+      <span class="badge lg">{{ gp['practice_code'] }}</span>
+    {% endif %}
+  </div>
+
+  {% if gp['region'] %}
+    <p class="region-tag">{{ gp['region'] }}</p>
+  {% endif %}
+
+  <table class="detail-table">
+    {% if gp['partnership_name'] %}
+    <tr>
+      <th>Partnership</th>
+      <td>{{ gp['partnership_name'] }}</td>
+    </tr>
+    {% endif %}
+    {% if gp['neighbourhood'] %}
+    <tr>
+      <th>Neighbourhood</th>
+      <td>{{ gp['neighbourhood'] }}</td>
+    </tr>
+    {% endif %}
+    {% if gp['area'] %}
+    <tr>
+      <th>Area / CCG</th>
+      <td>{{ gp['area'] }}</td>
+    </tr>
+    {% endif %}
+    {% if gp['address_line1'] or gp['address_line2'] or gp['address_line3'] %}
+    <tr>
+      <th>Address</th>
+      <td>
+        {% if gp['address_line1'] %}{{ gp['address_line1'] }}<br>{% endif %}
+        {% if gp['address_line2'] %}{{ gp['address_line2'] }}<br>{% endif %}
+        {% if gp['address_line3'] %}{{ gp['address_line3'] }}<br>{% endif %}
+        {% if gp['postcode'] %}<strong>{{ gp['postcode'] }}</strong>{% endif %}
+      </td>
+    </tr>
+    {% elif gp['postcode'] %}
+    <tr>
+      <th>Postcode</th>
+      <td>{{ gp['postcode'] }}</td>
+    </tr>
+    {% endif %}
+    {% if gp['telephone'] %}
+    <tr>
+      <th>Telephone</th>
+      <td><a href="tel:{{ gp['telephone'] }}">{{ gp['telephone'] }}</a></td>
+    </tr>
+    {% endif %}
+    {% if gp['email'] %}
+    <tr>
+      <th>Email</th>
+      <td>
+        <span class="email-cell">
+          <a href="mailto:{{ gp['email'] }}">{{ gp['email'] }}</a>
+          <button class="copy-btn" title="Copy email"
+                  onclick="copyEmail(this, '{{ gp['email'] }}')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+          </button>
+        </span>
+      </td>
+    </tr>
+    {% endif %}
+  </table>
+
+  {% if session.get('admin_id') %}
+  <div class="detail-admin-actions">
+    <a href="{{ url_for('admin_edit', gp_id=gp['id']) }}" class="btn-secondary">Edit</a>
+    <form action="{{ url_for('admin_delete', gp_id=gp['id']) }}" method="post"
+          onsubmit="return confirm('Remove this practice?')">
+      <button type="submit" class="btn-danger">Delete</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

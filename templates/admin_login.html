@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Admin Login{% endblock %}
+
+{% block content %}
+<div class="auth-box">
+  <h2>Admin Login</h2>
+  <form method="post">
+    <label>Username
+      <input type="text" name="username" autofocus autocomplete="username">
+    </label>
+    <label>Password
+      <input type="password" name="password" autocomplete="current-password">
+    </label>
+    <button type="submit" class="btn-primary full-width">Log in</button>
+  </form>
+</div>
+{% endblock %}
